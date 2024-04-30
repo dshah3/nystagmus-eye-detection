@@ -3,6 +3,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import argparse
 
+def process_frame(frame):
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    filtered_gray = gray[np.logical_and((gray < 250), (gray > 10))]
+    binary_threshold = np.min(filtered_gray) * 1 + np.median(filtered_gray) * 0.1
+    _, thresh = cv2.threshold(gray, int(binary_threshold), 255, cv2.THRESH_BINARY)
+    return thresh
+
 def calculate_average_centroid(contours):
     centroids = []
     for c in contours:
