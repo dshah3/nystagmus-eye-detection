@@ -119,20 +119,49 @@ def process_video_with_contours(
         
         return filtered_data
     
-    fs = 1
+    fs = fps
+    print(fps)
     
-    low_cutoff_frequency = 0.05 
+    low_cutoff_frequency = fs * 0.05
+    high_cutoff_frequency = 1
     
-    smoothed_left_centroids_x = low_pass_filter(left_centroids_x, low_cutoff_frequency, fs)
-    smoothed_right_centroids_x = low_pass_filter(right_centroids_x, low_cutoff_frequency, fs)
 
-    plt.plot(time_left, smoothed_left_centroids_x, c='red', label='Left Half Centroids')
-    plt.plot(time_right, smoothed_right_centroids_x, c='blue', label='Right Half Centroids')
+    highpassed_left_centroids_x = high_pass_filter(left_centroids_x, high_cutoff_frequency, fs)
+    highpassed_right_centroids_x = high_pass_filter(right_centroids_x, high_cutoff_frequency, fs)
+    
+    time_left = time_left/fps
+    time_right = time_right/fps
+    
+    
+    print(highpassed_left_centroids_x[1000:1100])
+    print(highpassed_left_centroids_x.shape)
+    rms_left = np.sqrt(np.mean(highpassed_left_centroids_x[int(fps*5):]**2))
+    rms_right = np.sqrt(np.mean(highpassed_right_centroids_x[int(fps*5):]**2))
+    
+    rms = np.array([rms_left, rms_right])
+    np.save("../rms.npy", rms)
+    
+    plt.subplot(211)
+    plt.plot(time_left, left_centroids_x, c='red', label='Left Half Centroids')
+    plt.plot(time_right, right_centroids_x, c='blue', label='Right Half Centroids')
     plt.title("Centroids Movement Over Time")
-    plt.xlabel("Time")
     plt.ylabel("X Coordinate")
     plt.legend()
-
+    
+    plt.subplot(212)
+    plt.plot(time_left, highpassed_left_centroids_x, c='red', label='Highpassed Left Half Centroids')
+    plt.plot(time_right, highpassed_right_centroids_x, c='blue', label='Highpassed Right Half Centroids')
+    plt.xlabel("Time (s)")
+    plt.ylim(-100, 100)
+    plt.legend()
+    
+    
+    
+    print(rms_left)
+    print(rms_right)
+    
+    
+    
     plt.tight_layout()
 
     plt.savefig("../output_graphs/test.png")
@@ -171,7 +200,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-

@@ -12,7 +12,7 @@ import shutil
 import cv2
 import glob
 import sys
-
+import numpy as np
 load_dotenv()
 
 RASPBERRY_PI_USERNAME = os.getenv("RASPBERRY_PI_USERNAME")
@@ -29,10 +29,10 @@ left_tolerance = 0.15
 right_tolerance = 1.0
 eye_height_min = 0.15
 eye_height_max = 0.50
-min_contour_area = 5
-max_contour_area = 2000
-max_gray = 190
-min_gray = 40
+min_contour_area = 10
+max_contour_area = 500
+max_gray = 240
+min_gray = 5
 
 class MyVideoCapture:
     def __init__(self, video_source=0):
@@ -101,6 +101,21 @@ def check_and_display_graph(graph_frame):
         graph_frame.after(5000, update_graph_display)  # Check for new graph every 5 seconds
 
     update_graph_display()
+    
+    
+    
+def check_and_display_metric(metric_frame):
+    def update_metric_display():
+        metric_files = [f for f in os.listdir('../') if f.endswith('.npy')]
+        if metric_files:
+            metric_path = os.path.join('../', metric_files[0])
+            display_metric(metric_path, metric_frame)
+        else:
+            create_placeholder(metric_frame, 400, 300, "No Metric Available")
+        metric_frame.after(5000, update_metric_display)  # Check for new graph every 5 seconds
+
+    update_metric_display()
+    
 
 def setup_settings_frame(parent):
     global left_tolerance, right_tolerance, eye_height_min, eye_height_max, min_contour_area, max_contour_area, max_gray, min_gray
@@ -239,8 +254,44 @@ def wait_for_video():
 def load_and_play_video(video_path):
     pass
 
-def display_metrics():
-    pass
+def display_metric(file_path, metrics_window, threshold = 3):
+    for widget in metrics_window.winfo_children():
+        widget.destroy()  # Clear the previous graph or placeholder
+        
+    
+    if not file_path:
+        print("No file selected.")
+        return
+
+    # Load the .npy file
+    data = np.load(file_path)
+    if data.size < 2:
+        print("The selected file does not contain enough data.")
+        return
+
+    # Assuming the first two values are the metrics we need to display
+    metric1, metric2 = np.round(data[0], 1), np.round(data[1], 1)
+    # Add labels to display the metrics
+    
+    if metric1 > threshold:
+        tk.Label(metrics_window, text=f"RMS Left ({metric1}) is over the threshold ({threshold})").pack(pady=10)
+    else: 
+        tk.Label(metrics_window, text=f"RMS Left: ({metric1}) is under the threshold ({threshold})").pack(pady=10)
+    
+    if metric2 > threshold:
+        tk.Label(metrics_window, text=f"RMS Left: ({metric2}) is over the threshold ({threshold})").pack(pady=10)
+    else: 
+        tk.Label(metrics_window, text=f"RMS Left: ({metric2}) is under the threshold ({threshold})").pack(pady=10)
+    
+    
+    if metric1 > threshold and metric2 > threshold:
+        tk.Label(metrics_window, text="OUT!!!").pack(pady=10)
+    else:
+        tk.Label(metrics_window, text="SAFE!!!").pack(pady=10)
+            
+
+# Bind this function to an appropriate event or button in your tkinter GUI
+
 
 def display_graph(graph_image_path, graph_frame):
     for widget in graph_frame.winfo_children():
@@ -284,7 +335,10 @@ graph_panel.pack(side=tk.LEFT, padx=10)
 
 check_and_display_graph(graph_panel)
 
-# metrics_panel = create_placeholder(bottom_frame, 400, 300, "Metrics")
-# metrics_panel.pack(side=tk.LEFT)
-
+# Create a new window for displaying the metrics
+metric_window = tk.Frame(bottom_frame, width=300, height=150)
+metric_window.pack(side=tk.RIGHT, padx=10)
+check_and_display_metric(metric_window)
+    
+    
 root.mainloop()
