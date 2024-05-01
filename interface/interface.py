@@ -279,15 +279,15 @@ def display_metric(file_path, metrics_window, threshold = 3):
         tk.Label(metrics_window, text=f"RMS Left: ({metric1}) is under the threshold ({threshold})").pack(pady=10)
     
     if metric2 > threshold:
-        tk.Label(metrics_window, text=f"RMS Left: ({metric2}) is over the threshold ({threshold})").pack(pady=10)
+        tk.Label(metrics_window, text=f"RMS Right: ({metric2}) is over the threshold ({threshold})").pack(pady=10)
     else: 
-        tk.Label(metrics_window, text=f"RMS Left: ({metric2}) is under the threshold ({threshold})").pack(pady=10)
+        tk.Label(metrics_window, text=f"RMS Right: ({metric2}) is under the threshold ({threshold})").pack(pady=10)
     
     
     if metric1 > threshold and metric2 > threshold:
-        tk.Label(metrics_window, text="OUT!!!").pack(pady=10)
+        tk.Label(metrics_window, text="NYSTAGMUS LIKELY!!!").pack(pady=10)
     else:
-        tk.Label(metrics_window, text="SAFE!!!").pack(pady=10)
+        tk.Label(metrics_window, text="NYSTAGMUS UNLIKELY!!!").pack(pady=10)
             
 
 # Bind this function to an appropriate event or button in your tkinter GUI
